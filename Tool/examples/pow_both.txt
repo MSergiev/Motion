@@ -1,0 +1,5 @@
+# Example parameters for pow in/out motion
+
+0, 300, 500
+POW, IN, 0.5, 0.5, 0, 1, 5
+POW, OUT, 0.5, 0.5, 0, 1, 5

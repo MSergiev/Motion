@@ -1,0 +1,4 @@
+# Example parameters for sine in motion
+
+0, 300, 500
+SINE, IN, 1, 1

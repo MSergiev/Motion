@@ -260,6 +260,12 @@ public:
     {
         return motion_queue;
     }
+
+    /** Get interpolated values queue */
+    inline const Interpolated& GetInterpolatedValues()
+    {
+        return interpolated_values;
+    }
     
     /** Set parameters */
     inline void SetParameters(

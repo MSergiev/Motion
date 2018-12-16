@@ -1,0 +1,4 @@
+# Example parameters for elastic in motion
+
+0, 300, 500
+ELASTIC, IN, 1, 1, 0, 1, 3, 2

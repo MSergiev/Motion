@@ -1,0 +1,4 @@
+# Example parameters for bounce out motion
+
+0, 300, 500
+BOUNCE, OUT, 1, 1, 0, 1, 3, 2

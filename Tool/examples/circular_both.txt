@@ -1,0 +1,5 @@
+# Example parameters for circular in/out motion
+
+0, 300, 500
+CIRCULAR, IN, 0.5, 0.5
+CIRCULAR, OUT, 0.5, 0.5

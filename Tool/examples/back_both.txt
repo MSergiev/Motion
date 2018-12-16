@@ -1,0 +1,5 @@
+# Example parameters for back in/out motion
+
+0, 300, 500
+BACK, IN, 0.5, 0.5
+BACK, OUT, 0.5, 0.5
