@@ -20,7 +20,7 @@ namespace Motion
 {
 
 /** See https://easings.net/ to choose a correct easing type **/
-enum class MotionType
+enum class Type : uint8_t
 {
     LINEAR,         // Linear
     POW,            // Raised to arbitrary power ( modifier is said power )
@@ -35,12 +35,11 @@ enum class MotionType
 };
 
 /** Acceleration of the selected motion type */
-enum class MotionAcceleration
+enum class Acceleration : uint8_t
 {
     IN,     // Acceleration
     OUT,    // Deceleration
 };
-
 
 using Easing = std::function<double (double, double, double)>;
 
@@ -58,7 +57,7 @@ namespace EasingFunction
 
     static Easing Sine = []( double x, double, double ) -> double
     {
-        double h_pi = M_PI*0.5;
+        const auto h_pi = M_PI*0.5;
         return 1 + std::sin( h_pi*x - h_pi );
     };
 
@@ -69,19 +68,19 @@ namespace EasingFunction
 
     static Easing Circular = []( double x, double, double ) -> double
     {
-        double inv = 1-x;
+        const auto inv = 1-x;
         return 1 - std::sqrt( (2 - inv) * inv );
     };
 
     static Easing Elastic = []( double x, double wobbles, double gravity ) -> double
     {
-        double arg = wobbles * M_PI * (1 - x);
+        const auto arg = wobbles * M_PI * (1 - x);
         return std::pow( M_E, (x - 1) * gravity ) * std::sin(arg)/arg;
     };
 
     static Easing Bounce = []( double x, double bounces, double gravity ) -> double
     {
-        double arg = bounces * M_PI * (1 - x);
+        const auto arg = bounces * M_PI * (1 - x);
         return std::abs(std::pow( M_E, (x - 1) * gravity ) * std::sin(arg)/arg);
     };
 
@@ -102,11 +101,11 @@ public:
         return Easing(
             [&]( double val, double modifier = 1, double gravity = 6 )
             {
-                double l = to-from;
-                double f = ( from == 0.0 ? 0.0 : ( inverted ? 1-func(1-from, modifier, gravity) : func(from, modifier, gravity) ) );
-                double t = ( to == 1.0 ? 1.0 : ( inverted ? 1-func(1-to, modifier, gravity) : func(to, modifier, gravity) ) );
-                double c = ( inverted ? 1-func(1-(val*l+from), modifier, gravity) : func(val*l+from, modifier, gravity) );
-                double d = t-f;
+                const auto l = to-from;
+                const auto f = ( from == 0.0 ? 0.0 : ( inverted ? 1-func(1-from, modifier, gravity) : func(from, modifier, gravity) ) );
+                const auto t = ( to == 1.0 ? 1.0 : ( inverted ? 1-func(1-to, modifier, gravity) : func(to, modifier, gravity) ) );
+                const auto c = ( inverted ? 1-func(1-(val*l+from), modifier, gravity) : func(val*l+from, modifier, gravity) );
+                auto d = t-f;
                 const auto delta = std::numeric_limits<decltype(d)>::epsilon();
                 if( d < delta ) d = delta;
                 return (c - f) / d;
@@ -118,8 +117,8 @@ public:
     inline static double GetFunctionValue( double val, 
                                            double from,
                                            double to,
-                                           MotionType type,
-                                           MotionAcceleration accel = MotionAcceleration::IN,
+                                           Type type,
+                                           Acceleration accel = Acceleration::IN,
                                            double modifier = 6.0,
                                            double gravity = 6.0 ) 
     {
@@ -129,76 +128,76 @@ public:
         {
             switch( type ) 
             {
-                case MotionType::POW:
+                case Type::POW:
                 {
                     switch( accel ) 
                     {
-                        case MotionAcceleration::IN:   return EasingFunction::Pow( val, modifier, gravity );
-                        case MotionAcceleration::OUT:  return 1-EasingFunction::Pow( 1-val, modifier, gravity );
+                        case Acceleration::IN:   return EasingFunction::Pow( val, modifier, gravity );
+                        case Acceleration::OUT:  return 1-EasingFunction::Pow( 1-val, modifier, gravity );
                     }
                 }
-                case MotionType::QUAD:
+                case Type::QUAD:
                 {
                     switch( accel ) 
                     {
-                        case MotionAcceleration::IN:   return EasingFunction::Pow( val, 2, gravity );
-                        case MotionAcceleration::OUT:  return 1-EasingFunction::Pow( 1-val, 2, gravity );
+                        case Acceleration::IN:   return EasingFunction::Pow( val, 2, gravity );
+                        case Acceleration::OUT:  return 1-EasingFunction::Pow( 1-val, 2, gravity );
                     }
                 }
-                case MotionType::CUBIC:
+                case Type::CUBIC:
                 {
                     switch( accel ) 
                     {
-                        case MotionAcceleration::IN:   return EasingFunction::Pow( val, 3, gravity );
-                        case MotionAcceleration::OUT:  return 1-EasingFunction::Pow( 1-val, 3, gravity );
+                        case Acceleration::IN:   return EasingFunction::Pow( val, 3, gravity );
+                        case Acceleration::OUT:  return 1-EasingFunction::Pow( 1-val, 3, gravity );
                     }
                 }
-                case MotionType::SINE:
+                case Type::SINE:
                 {
                     switch( accel ) 
                     {
-                        case MotionAcceleration::IN:   return EasingFunction::Sine( val, modifier, gravity );
-                        case MotionAcceleration::OUT:  return 1-EasingFunction::Sine( 1-val, modifier, gravity );
+                        case Acceleration::IN:   return EasingFunction::Sine( val, modifier, gravity );
+                        case Acceleration::OUT:  return 1-EasingFunction::Sine( 1-val, modifier, gravity );
                     }
                 }
-                case MotionType::BACK:
+                case Type::BACK:
                 {
                     switch( accel ) 
                     {
-                        case MotionAcceleration::IN:   return EasingFunction::Back( val, modifier, gravity );
-                        case MotionAcceleration::OUT:  return 1-EasingFunction::Back( 1-val, modifier, gravity );
+                        case Acceleration::IN:   return EasingFunction::Back( val, modifier, gravity );
+                        case Acceleration::OUT:  return 1-EasingFunction::Back( 1-val, modifier, gravity );
                     }
                 }
-                case MotionType::CIRCULAR:
+                case Type::CIRCULAR:
                 {
                     switch( accel ) 
                     {
-                        case MotionAcceleration::IN:   return EasingFunction::Circular( val, modifier, gravity );
-                        case MotionAcceleration::OUT:  return 1-EasingFunction::Circular( 1-val, modifier, gravity );
+                        case Acceleration::IN:   return EasingFunction::Circular( val, modifier, gravity );
+                        case Acceleration::OUT:  return 1-EasingFunction::Circular( 1-val, modifier, gravity );
                     }
                 }                
-                case MotionType::ELASTIC:
+                case Type::ELASTIC:
                 {
                     switch( accel ) 
                     {
-                        case MotionAcceleration::IN:   return EasingFunction::Elastic( val, modifier, gravity );
-                        case MotionAcceleration::OUT:  return 1-EasingFunction::Elastic( 1-val, modifier, gravity );
+                        case Acceleration::IN:   return EasingFunction::Elastic( val, modifier, gravity );
+                        case Acceleration::OUT:  return 1-EasingFunction::Elastic( 1-val, modifier, gravity );
                     }
                 }
-                case MotionType::BOUNCE:
+                case Type::BOUNCE:
                 {
                     switch( accel ) 
                     {
-                        case MotionAcceleration::IN:   return EasingFunction::Bounce( val, modifier, gravity );
-                        case MotionAcceleration::OUT:  return 1-EasingFunction::Bounce( 1-val, modifier, gravity );
+                        case Acceleration::IN:   return EasingFunction::Bounce( val, modifier, gravity );
+                        case Acceleration::OUT:  return 1-EasingFunction::Bounce( 1-val, modifier, gravity );
                     }
                 }
-                case MotionType::EXPONENTIAL:
+                case Type::EXPONENTIAL:
                 {
                     switch( accel ) 
                     {
-                        case MotionAcceleration::IN:   return EasingFunction::Exponential( val, modifier, gravity );
-                        case MotionAcceleration::OUT:  return 1-EasingFunction::Exponential( 1-val, modifier, gravity );
+                        case Acceleration::IN:   return EasingFunction::Exponential( val, modifier, gravity );
+                        case Acceleration::OUT:  return 1-EasingFunction::Exponential( 1-val, modifier, gravity );
                     }
                 }
                 default: return EasingFunction::Linear( val, 1.0, 1.0 );
@@ -210,15 +209,15 @@ public:
         {
             switch( type ) 
             {
-                case MotionType::POW:          return Normalized( from, to, EasingFunction::Pow,           (accel == MotionAcceleration::OUT) )( val, modifier, gravity );
-                case MotionType::QUAD:         return Normalized( from, to, EasingFunction::Pow,           (accel == MotionAcceleration::OUT) )( val, 2, gravity );
-                case MotionType::CUBIC:        return Normalized( from, to, EasingFunction::Pow,           (accel == MotionAcceleration::OUT) )( val, 3, gravity );
-                case MotionType::SINE:         return Normalized( from, to, EasingFunction::Sine,          (accel == MotionAcceleration::OUT) )( val, modifier, gravity );
-                case MotionType::BACK:         return Normalized( from, to, EasingFunction::Back,          (accel == MotionAcceleration::OUT) )( val, modifier, gravity );
-                case MotionType::CIRCULAR:     return Normalized( from, to, EasingFunction::Circular,      (accel == MotionAcceleration::OUT) )( val, modifier, gravity );
-                case MotionType::ELASTIC:      return Normalized( from, to, EasingFunction::Elastic,       (accel == MotionAcceleration::OUT) )( val, modifier, gravity );
-                case MotionType::BOUNCE:       return Normalized( from, to, EasingFunction::Bounce,        (accel == MotionAcceleration::OUT) )( val, modifier, gravity );
-                case MotionType::EXPONENTIAL:  return Normalized( from, to, EasingFunction::Exponential,   (accel == MotionAcceleration::OUT) )( val, modifier, gravity );
+                case Type::POW:          return Normalized( from, to, EasingFunction::Pow,           (accel == Acceleration::OUT) )( val, modifier, gravity );
+                case Type::QUAD:         return Normalized( from, to, EasingFunction::Pow,           (accel == Acceleration::OUT) )( val, 2, gravity );
+                case Type::CUBIC:        return Normalized( from, to, EasingFunction::Pow,           (accel == Acceleration::OUT) )( val, 3, gravity );
+                case Type::SINE:         return Normalized( from, to, EasingFunction::Sine,          (accel == Acceleration::OUT) )( val, modifier, gravity );
+                case Type::BACK:         return Normalized( from, to, EasingFunction::Back,          (accel == Acceleration::OUT) )( val, modifier, gravity );
+                case Type::CIRCULAR:     return Normalized( from, to, EasingFunction::Circular,      (accel == Acceleration::OUT) )( val, modifier, gravity );
+                case Type::ELASTIC:      return Normalized( from, to, EasingFunction::Elastic,       (accel == Acceleration::OUT) )( val, modifier, gravity );
+                case Type::BOUNCE:       return Normalized( from, to, EasingFunction::Bounce,        (accel == Acceleration::OUT) )( val, modifier, gravity );
+                case Type::EXPONENTIAL:  return Normalized( from, to, EasingFunction::Exponential,   (accel == Acceleration::OUT) )( val, modifier, gravity );
                 default:                       return EasingFunction::Linear( val, 1.0, 1.0 );
             }
         }
@@ -226,6 +225,6 @@ public:
     
 };
 
-} // namespace Motion
+} // namespace egt
 
 #endif /** EASING_FUNCTIONS_H */

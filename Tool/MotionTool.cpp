@@ -9,7 +9,7 @@
 
 namespace
 {
-    Motion::Motion<double> motion;
+    Motion::MotionCore<double> motion(false);
     Motion::MotionQueue<double> queue;
     constexpr auto filename = "motion_in.txt";
 }
@@ -89,22 +89,22 @@ void AddToQueue( std::string line )
         {
             case 0:
             {
-                if( s == "POW" ) param.motion_type = Motion::MotionType::POW;
-                else if( s == "QUAD" ) param.motion_type = Motion::MotionType::QUAD;
-                else if( s == "CUBIC" ) param.motion_type = Motion::MotionType::CUBIC;
-                else if( s == "SINE" ) param.motion_type = Motion::MotionType::SINE;
-                else if( s == "BACK" ) param.motion_type = Motion::MotionType::BACK;
-                else if( s == "CIRCULAR" ) param.motion_type = Motion::MotionType::CIRCULAR;
-                else if( s == "ELASTIC" ) param.motion_type = Motion::MotionType::ELASTIC;
-                else if( s == "BOUNCE" ) param.motion_type = Motion::MotionType::BOUNCE;
-                else if( s == "EXPONENTIAL" ) param.motion_type = Motion::MotionType::EXPONENTIAL;
-                else param.motion_type = Motion::MotionType::LINEAR;
+                if( s == "POW" )                param.motion_type = Motion::Type::POW;
+                else if( s == "QUAD" )          param.motion_type = Motion::Type::QUAD;
+                else if( s == "CUBIC" )         param.motion_type = Motion::Type::CUBIC;
+                else if( s == "SINE" )          param.motion_type = Motion::Type::SINE;
+                else if( s == "BACK" )          param.motion_type = Motion::Type::BACK;
+                else if( s == "CIRCULAR" )      param.motion_type = Motion::Type::CIRCULAR;
+                else if( s == "ELASTIC" )       param.motion_type = Motion::Type::ELASTIC;
+                else if( s == "BOUNCE" )        param.motion_type = Motion::Type::BOUNCE;
+                else if( s == "EXPONENTIAL" )   param.motion_type = Motion::Type::EXPONENTIAL;
+                else                            param.motion_type = Motion::Type::LINEAR;
             }
             break;
             case 1:
             {
-                if( s == "OUT" ) param.accel_type = Motion::MotionAcceleration::OUT;
-                else param.accel_type = Motion::MotionAcceleration::IN;
+                if( s == "OUT" )    param.accel_type = Motion::Acceleration::OUT;
+                else                param.accel_type = Motion::Acceleration::IN;
             }
             break;
             case 2: set_value( param.duration );        break;
