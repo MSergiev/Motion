@@ -100,13 +100,15 @@ public:
     inline static Easing Normalized( double from, double to, const Easing& func, bool inverted = false )
     {
         return Easing(
-            [&]( double val, double modifier = 1, double gravity = 6 ) {
+            [&]( double val, double modifier = 1, double gravity = 6 )
+            {
                 double l = to-from;
                 double f = ( from == 0.0 ? 0.0 : ( inverted ? 1-func(1-from, modifier, gravity) : func(from, modifier, gravity) ) );
                 double t = ( to == 1.0 ? 1.0 : ( inverted ? 1-func(1-to, modifier, gravity) : func(to, modifier, gravity) ) );
                 double c = ( inverted ? 1-func(1-(val*l+from), modifier, gravity) : func(val*l+from, modifier, gravity) );
                 double d = t-f;
-                if( d < std::numeric_limits<decltype(d)>::epsilon() ) d = std::numeric_limits<decltype(d)>::epsilon();
+                const auto delta = std::numeric_limits<decltype(d)>::epsilon();
+                if( d < delta ) d = delta;
                 return (c - f) / d;
             }
         );

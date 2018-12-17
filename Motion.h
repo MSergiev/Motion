@@ -21,6 +21,7 @@
 #include <fstream>
 
 #include "EasingFunctions.h"
+#include "Point.h"
 
 namespace Motion
 {
@@ -64,7 +65,7 @@ template<typename ValueType>
 using MotionQueue = std::vector<MotionParameters<ValueType>>;
 
 /** Easing class */
-template<typename ValueType>
+template<typename ValueType = double>
 class Motion 
 {
     using MotionIdx = uint8_t;
@@ -142,7 +143,7 @@ public:
                 interpolated_values.pop_front();
             }
         }
-    }    
+    }
     
     /** Calculate next value */
     void CalculateNext()
@@ -367,70 +368,87 @@ public:
     
 }; // class Motion
 
-template<uint8_t dimention, typename ValueType>
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+// N-Dimentional Motion
+template<typename ValueType, size_t Dimention>
 struct MotionND
 {
-    std::vector<Motion<ValueType>> motion;
+    std::array<Motion<ValueType>, Dimention> motion {};
 
-    explicit MotionND( bool runtime_calculation = false )
+    explicit MotionND( bool runtime_calculation = false ) : motion(runtime_calculation) {}
+
+    Motion<ValueType>& at( size_t i ) { return motion.at(i); }
+    const Motion<ValueType>& at( size_t i ) const { return motion.at(i); }
+
+    void SetParameters(
+        PointND<ValueType, Dimention> start_value,
+        PointND<ValueType, Dimention> end_value,
+        TimeType frame_duration,
+        MotionType type = MotionType::LINEAR,
+        double duration_split = 0.5,
+        double modifier = 4,
+        double gravity = 2 )
     {
-        for( auto d = 0; d < dimention; ++d )
+        for( auto i = 0; i < Dimention; ++i )
         {
-            motion.emplace_back( runtime_calculation );
+            motion.at(i).SetParameters( start_value.at(i), end_value.at(i), frame_duration, type, duration_split, modifier, gravity );
+        }
+    }
+
+    void SetParameters(
+        PointND<ValueType, Dimention> start_value,
+        PointND<ValueType, Dimention> end_value,
+        TimeType frame_duration,
+        MotionQueue<ValueType> params )
+    {
+        for( auto i = 0; i < Dimention; ++i )
+        {
+            motion.at(i).SetParameters( start_value.at(i), end_value.at(i), frame_duration, params );
         }
     }
 
     void AdvanceToNext()
     {
-        for( auto& d : motion )
+        for( auto& m : motion )
         {
-            d.AdvanceToNext();
+            m.AdvanceToNext();
         }
     }
 
-    bool HasFinished()
+    bool HasFinished() const
     {
-        for( auto& d : motion )
+        for( const auto& m : motion )
         {
-            if( !d.HasFinished() )
+            if( !m.HasFinished() )
             {
                 return false;
             }
         }
         return true;
     }
-};
 
-template<typename ValueType>
-struct Point2D
-{
-    ValueType x {};
-    ValueType y {};
-
-    bool operator== ( const Point2D& c ) const
+    PointND<ValueType, Dimention> GetCurrentValue() const
     {
-//        return ( x == c.x && y == c.y );
-        return std::fabs(x - c.x) < std::numeric_limits<ValueType>::epsilon() &&
-               std::fabs(y - c.y) < std::numeric_limits<ValueType>::epsilon();
-    }
-
-    void operator+= ( const Point2D& c )
-    {
-        x += c.x;
-        y += c.y;
-    }
-
-    Point2D operator+ ( const Point2D& c )
-    {
-        return { static_cast<ValueType>(x + c.x), static_cast<ValueType>(y + c.y) };
+        PointND<ValueType, Dimention> p {};
+        for( auto i = 0; i < Dimention; ++i )
+        {
+            p.at(i) = motion.at(i).GetCurrentValue();
+        }
+        return p;
     }
 };
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 template<typename ValueType>
 struct Motion2D
 {
-    Motion<ValueType> x {};
-    Motion<ValueType> y {};
+    Motion<ValueType> x {}, y {};
 
     explicit Motion2D( bool runtime_calculation = false )
         : x(runtime_calculation),
@@ -477,40 +495,65 @@ struct Motion2D
     }
 };
 
-template<typename ValueType>
-struct Point3D
-{
-    ValueType x {};
-    ValueType y {};
-    ValueType z {};
+//template<typename ValueType>
+//struct Motion2D
+//{
+//    MotionND<ValueType, 2> motion {};
 
-    bool operator== ( const Point3D& c ) const
-    {
-//        return ( x == c.x && y == c.y );
-        return std::fabs(x - c.x) < std::numeric_limits<ValueType>::epsilon() &&
-               std::fabs(y - c.y) < std::numeric_limits<ValueType>::epsilon() &&
-               std::fabs(z - c.z) < std::numeric_limits<ValueType>::epsilon();
-    }
+//    Motion<ValueType>& x() { return motion.at(0); }
+//    Motion<ValueType>& y() { return motion.at(1); }
+//    const Motion<ValueType>& x() const { return motion.at(0); }
+//    const Motion<ValueType>& y() const { return motion.at(1); }
 
-    void operator+= ( const Point3D& c )
-    {
-        x += c.x;
-        y += c.y;
-        z += c.z;
-    }
+//    explicit Motion2D( bool runtime_calculation = false )
+//        : motion(runtime_calculation)
+//    {}
 
-    Point3D operator+ ( const Point3D& c )
-    {
-        return { static_cast<ValueType>(x + c.x), static_cast<ValueType>(y + c.y), static_cast<ValueType>(z + c.z) };
-    }
-};
+//    void SetParameters(
+//        Point2D<ValueType> start_value,
+//        Point2D<ValueType> end_value,
+//        TimeType frame_duration,
+//        MotionType type = MotionType::LINEAR,
+//        double duration_split = 0.5,
+//        double modifier = 4,
+//        double gravity = 2 )
+//    {
+//        motion.SetParameters( start_value, end_value, frame_duration, type, duration_split, modifier, gravity );
+//    }
 
-template<typename ValueType>
+//    void SetParameters(
+//        Point2D<ValueType> start_value,
+//        Point2D<ValueType> end_value,
+//        TimeType frame_duration,
+//        MotionQueue<ValueType> params )
+//    {
+//        motion.SetParameters( start_value, end_value, frame_duration, params );
+//    }
+
+//    void AdvanceToNext()
+//    {
+//        motion.AdvanceToNext();
+//    }
+
+//    bool HasFinished() const
+//    {
+//        return motion.HasFinished();
+//    }
+
+//    Point2D<ValueType> GetCurrentValue() const
+//    {
+//        return motion.GetCurrentValue();
+//    }
+//};
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+template<typename ValueType = double>
 struct Motion3D
 {
-    Motion<ValueType> x {};
-    Motion<ValueType> y {};
-    Motion<ValueType> z {};
+    Motion<ValueType> x {}, y {}, z {};
 
     explicit Motion3D( bool runtime_calculation = false )
         : x(runtime_calculation),
@@ -560,6 +603,59 @@ struct Motion3D
         return { x.GetCurrentValue(), y.GetCurrentValue(), z.GetCurrentValue() };
     }
 };
+
+//template<typename ValueType>
+//struct Motion3D
+//{
+//    MotionND<ValueType, 3> motion {};
+
+//    Motion<ValueType>& x() { return motion.at(0); }
+//    Motion<ValueType>& y() { return motion.at(1); }
+//    Motion<ValueType>& z() { return motion.at(2); }
+//    const Motion<ValueType>& x() const { return motion.at(0); }
+//    const Motion<ValueType>& y() const { return motion.at(1); }
+//    const Motion<ValueType>& z() const { return motion.at(2); }
+
+//    explicit Motion3D( bool runtime_calculation = false )
+//        : motion(runtime_calculation)
+//    {}
+
+//    void SetParameters(
+//        Point3D<ValueType> start_value,
+//        Point3D<ValueType> end_value,
+//        TimeType frame_duration,
+//        MotionType type = MotionType::LINEAR,
+//        double duration_split = 0.5,
+//        double modifier = 4,
+//        double gravity = 2 )
+//    {
+//        motion.SetParameters( start_value, end_value, frame_duration, type, duration_split, modifier, gravity );
+//    }
+
+//    void SetParameters(
+//        Point3D<ValueType> start_value,
+//        Point3D<ValueType> end_value,
+//        TimeType frame_duration,
+//        MotionQueue<ValueType> params )
+//    {
+//        motion.SetParameters( start_value, end_value, frame_duration, params );
+//    }
+
+//    void AdvanceToNext()
+//    {
+//        motion.AdvanceToNext();
+//    }
+
+//    bool HasFinished()
+//    {
+//        return motion.HasFinished();
+//    }
+
+//    Point3D<ValueType> GetCurrentValue()
+//    {
+//        return motion.GetCurrentValue();
+//    }
+//};
 
 } // namespace Motion
 
